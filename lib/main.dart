@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:testing_app/login.dart';
 import 'package:testing_app/register.dart';
+import 'package:local_auth/local_auth.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  var prefs = await SharedPreferences.getInstance();
   runApp(MyApp());
 }
 
@@ -25,6 +29,7 @@ class MyApp extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
+                          //Login
                           MaterialButton(
                             minWidth: double.infinity,
                             height: 60,
@@ -42,6 +47,24 @@ class MyApp extends StatelessWidget {
                                 Text("Login", style: TextStyle(fontSize: 20)),
                           ),
                           const SizedBox(height: 15),
+                          //Biometric
+                          MaterialButton(
+                              minWidth: double.infinity,
+                              height: 60,
+                              onPressed: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => RegisterApp()));
+                              },
+                              color: Colors.deepPurple[300],
+                              shape: RoundedRectangleBorder(
+                                  side: BorderSide(color: Colors.deepPurple),
+                                  borderRadius: BorderRadius.circular(40)),
+                              child: Text("Biometric Login",
+                                  style: TextStyle(fontSize: 20))),
+                          const SizedBox(height: 15),
+                          //Register
                           MaterialButton(
                               minWidth: double.infinity,
                               height: 60,

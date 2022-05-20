@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:testing_app/db_connection.dart';
+import 'package:testing_app/user_simple_preferences.dart';
 
 class RegisterApp extends StatefulWidget {
   const RegisterApp({Key? key}) : super(key: key);
@@ -15,19 +13,6 @@ class _RegisterAppState extends State<RegisterApp> {
   final TextEditingController _pass = TextEditingController();
   final TextEditingController _email = TextEditingController();
   final TextEditingController _passConf = TextEditingController();
-  final DatabaseConnection _databaseConnection = DatabaseConnection();
-  late Database _database;
-  Future<Database> get database async {
-    if (_database != null) return _database;
-    _database = await _databaseConnection.setDatabase();
-    return _database;
-  }
-
-  insertData(table, data) async {
-    var connection = await database;
-    return await connection.insert(table, data,
-        conflictAlgorithm: ConflictAlgorithm.replace);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,15 +76,16 @@ include a capital letter, a number and a symbol
         ),
         floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.login),
-          onPressed: () {
-            if (_key.currentState!.validate()) {
-              _key.currentState!.save();
-              print("form submitted");
-              String email = _email.text;
-              String pass = _pass.text;
-              Map<String, dynamic> row = {'email': email, 'password': pass};
-              insertData('users', row);
-            }
+          onPressed: () async {
+            // if (_key.currentState!.validate()) {
+            //   _key.currentState!.save();
+            //   print("form submitted");
+            //   String email = _email.text;
+            //   String pass = _pass.text;
+            //   print(email);
+            //   print(pass);
+            //   await UserSimplePreferences.setUsername(email);
+            // }
           },
         ),
       ),
