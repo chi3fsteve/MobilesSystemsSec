@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:testing_app/login.dart';
 import 'package:testing_app/register.dart';
-import 'package:local_auth/local_auth.dart';
+import 'package:testing_app/welcome.dart';
+import 'package:testing_app/local_auth_api.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  var prefs = await SharedPreferences.getInstance();
   runApp(MyApp());
 }
 
@@ -51,11 +50,15 @@ class MyApp extends StatelessWidget {
                           MaterialButton(
                               minWidth: double.infinity,
                               height: 60,
-                              onPressed: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => RegisterApp()));
+                              onPressed: () async {
+                                final isAuthenticated =
+                                    await LocalAuthApi.authenticate();
+                                if (isAuthenticated) {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => Welcome()));
+                                }
                               },
                               color: Colors.deepPurple[300],
                               shape: RoundedRectangleBorder(

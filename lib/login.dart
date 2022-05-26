@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:testing_app/welcome.dart';
 
 class LoginApp extends StatefulWidget {
   const LoginApp({Key? key}) : super(key: key);
@@ -9,6 +12,9 @@ class LoginApp extends StatefulWidget {
 
 class _LoginAppState extends State<LoginApp> {
   final GlobalKey<FormState> _key = GlobalKey<FormState>();
+  final TextEditingController _pass = TextEditingController();
+  final TextEditingController _login = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -27,17 +33,15 @@ class _LoginAppState extends State<LoginApp> {
           child: Column(
             children: [
               TextFormField(
-                decoration: const InputDecoration(labelText: "Email"),
+                controller: _login,
+                decoration: const InputDecoration(labelText: "Login"),
                 validator: (value) {
                   if (value == null || value.isEmpty) return "Field required";
-                  String emailPattern =
-                      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+";
-                  if (!RegExp(emailPattern).hasMatch(value))
-                    return 'Wrong email address pattern';
                   return null;
                 },
               ),
               TextFormField(
+                controller: _pass,
                 decoration: const InputDecoration(labelText: "Password"),
                 validator: (value) {
                   if (value == null || value.isEmpty) return "Field required";
@@ -57,10 +61,53 @@ include a capital letter, a number and a symbol
         ),
         floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.login),
-          onPressed: () {
+          onPressed: () async {
+            final prefs = await SharedPreferences.getInstance();
+            String login = _login.text;
+            String pass = _pass.text;
             if (_key.currentState!.validate()) {
               _key.currentState!.save();
-              print("form submitted");
+              final String? passCheck = prefs.getString(login);
+              if (passCheck == null) {
+                showDialog<String>(
+                  context: context,
+                  builder: (BuildContext context) => AlertDialog(
+                    title: const Text('Given login is not registered'),
+                    content: const Text('Please go to register page'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, 'OK'),
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                final key =
+                    encrypt.Key.fromUtf8('SuperSecretKeyPleaseDontLook!!!!');
+                final iv = encrypt.IV.fromLength(16);
+                final encrypter = encrypt.Encrypter(encrypt.AES(key));
+                final decrypted = encrypter
+                    .decrypt(encrypt.Encrypted.fromBase64(passCheck), iv: iv);
+                if (decrypted == pass) {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => Welcome()));
+                } else {
+                  showDialog<String>(
+                    context: context,
+                    builder: (BuildContext context) => AlertDialog(
+                      title: const Text('Password incorrect'),
+                      content: const Text('Please try again'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, 'OK'),
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              }
             }
           },
         ),

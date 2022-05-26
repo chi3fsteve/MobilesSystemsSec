@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:testing_app/user_simple_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
 
 class RegisterApp extends StatefulWidget {
   const RegisterApp({Key? key}) : super(key: key);
@@ -11,7 +12,7 @@ class RegisterApp extends StatefulWidget {
 class _RegisterAppState extends State<RegisterApp> {
   final GlobalKey<FormState> _key = GlobalKey<FormState>();
   final TextEditingController _pass = TextEditingController();
-  final TextEditingController _email = TextEditingController();
+  final TextEditingController _login = TextEditingController();
   final TextEditingController _passConf = TextEditingController();
 
   @override
@@ -32,14 +33,11 @@ class _RegisterAppState extends State<RegisterApp> {
           child: Column(
             children: [
               TextFormField(
-                controller: _email,
-                decoration: const InputDecoration(labelText: "Email"),
+                controller: _login,
+                decoration: const InputDecoration(labelText: "Login"),
                 validator: (value) {
                   if (value == null || value.isEmpty) return "Field required";
-                  String emailPattern =
-                      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+";
-                  if (!RegExp(emailPattern).hasMatch(value))
-                    return 'Wrong email address pattern';
+
                   return null;
                 },
               ),
@@ -77,15 +75,49 @@ include a capital letter, a number and a symbol
         floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.login),
           onPressed: () async {
-            // if (_key.currentState!.validate()) {
-            //   _key.currentState!.save();
-            //   print("form submitted");
-            //   String email = _email.text;
-            //   String pass = _pass.text;
-            //   print(email);
-            //   print(pass);
-            //   await UserSimplePreferences.setUsername(email);
-            // }
+            final prefs = await SharedPreferences.getInstance();
+            String login = _login.text;
+            String pass = _pass.text;
+            if (_key.currentState!.validate()) {
+              _key.currentState!.save();
+              final String? check = prefs.getString(login);
+              if (check == null) {
+                final key =
+                    encrypt.Key.fromUtf8('SuperSecretKeyPleaseDontLook!!!!');
+                final iv = encrypt.IV.fromLength(16);
+                final encrypter = encrypt.Encrypter(encrypt.AES(key));
+                final encryptedPass = encrypter.encrypt(pass, iv: iv);
+                await prefs.setString(login, encryptedPass.base64);
+                final String? xd = prefs.getString(login);
+                showDialog<String>(
+                  context: context,
+                  builder: (BuildContext context) => AlertDialog(
+                    title: const Text('Registration successful'),
+                    content: const Text('Please log in'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, 'OK'),
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                showDialog<String>(
+                  context: context,
+                  builder: (BuildContext context) => AlertDialog(
+                    title: const Text('You are already registered'),
+                    content: const Text('Please go to login page'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, 'OK'),
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            }
           },
         ),
       ),
