@@ -87,9 +87,9 @@ include a capital letter, a number and a symbol
                     encrypt.Key.fromUtf8('SuperSecretKeyPleaseDontLook!!!!');
                 final iv = encrypt.IV.fromLength(16);
                 final encrypter = encrypt.Encrypter(encrypt.AES(key));
-                final decrypted = encrypter
-                    .decrypt(encrypt.Encrypted.fromBase64(passCheck), iv: iv);
-                if (decrypted == pass) {
+                if (encrypter.decrypt(encrypt.Encrypted.fromBase64(passCheck),
+                        iv: iv) ==
+                    pass) {
                   Navigator.push(context,
                       MaterialPageRoute(builder: (context) => Welcome()));
                 } else {

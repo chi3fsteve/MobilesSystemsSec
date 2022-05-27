@@ -6,15 +6,16 @@ class Welcome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Welcome to Flutter',
+      title: 'Notes',
       home: Scaffold(
         appBar: AppBar(
-            title: const Text('Welcome to Flutter'),
+            title: const Text('Notes'),
+            centerTitle: true,
             leading: IconButton(
                 icon: Icon(Icons.arrow_back),
                 onPressed: () => Navigator.pop(context))),
         body: const Center(
-          child: Text('Hello World'),
+          child: Text('Ur momma'),
         ),
       ),
     );

